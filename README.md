@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# jobineurope
 
-## Getting Started
+A personal AI job dashboard: ingest your professional profile, find
+sponsorship-friendly jobs in **Germany & Romania**, rank them by fit, draft
+tailored cover letters, and track every application.
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router) · MongoDB Atlas + Vector Search · Auth.js v5 ·
+provider-agnostic AI (Cloudflare Workers AI / NVIDIA NIM / OpenRouter).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Status
+
+| Phase | Scope | State |
+|---|---|---|
+| 0 | Next.js + Atlas + Auth.js skeleton | ✅ done |
+| 1 | CV upload + GitHub + website → structured profile | ✅ done |
+| 2 | Job ingestion (Adzuna + Arbeitnow) + nightly cron | ✅ done |
+| 3 | Vector shortlist + AI fit scoring | ✅ done |
+| 4 | Cover-letter generation (tone + versioning) | ✅ done |
+| 5 | Application tracker (kanban + notes) | ✅ done |
+| 6 | Assisted apply (reusable answers + copy) | ✅ done |
+| 7 | Polish (alerts, saved searches, GDPR export) | ▢ planned |
+
+## Setup
+
+1. **Install deps**
+
+   ```bash
+   npm install
+   ```
+
+2. **Configure env** — copy `.env.example` to `.env.local` and fill in:
+   - `MONGODB_URI` — a free Atlas cluster (https://cloud.mongodb.com)
+   - `AUTH_SECRET` — run `npx auth secret`
+   - GitHub + Google OAuth app credentials (callback URLs in `.env.example`)
+   - One AI chat provider key (OpenRouter is easiest) and one embed provider
+     (Cloudflare Workers AI or NVIDIA NIM)
+
+3. **Run**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open http://localhost:3000 — you'll be redirected to `/login`.
+
+## AI provider routing
+
+Chat and embeddings are decoupled and selected by env:
+
+```
+AI_CHAT_PROVIDER  = openrouter | nim | cloudflare
+AI_EMBED_PROVIDER = cloudflare | nim     # OpenRouter has no embeddings API
+EMBED_DIMENSIONS  = 768                   # must match model + Atlas index
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Implementation: `src/lib/ai/` (factory in `index.ts`, providers under `providers/`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project map
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  auth.ts                      Auth.js config (GitHub doubles as data connection)
+  proxy.ts                     Route protection (Next 16 proxy convention)
+  app/
+    login/                     Sign-in page
+    (dashboard)/               Authenticated dashboard + CvUpload
+    api/auth/[...nextauth]/    Auth.js handlers
+    api/profile/cv/            CV upload → parse → persist
+  lib/
+    db/      mongo.ts (lazy client) · schema.ts (collection types)
+    ai/      provider-agnostic chat + embeddings
+    profile/ parse-cv.ts (PDF → text → structured JSON)
+```
 
-## Learn More
+## Notes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- CV data is sensitive PII; all queries are scoped to `userId`. Keep GDPR basics
+  in mind (export/delete, no needless retention).
+- "Auto-apply" is intentionally **assisted apply** — the AI prepares materials,
+  you review and submit. No login automation (LinkedIn/Indeed ToS + bans).
