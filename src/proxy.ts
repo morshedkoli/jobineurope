@@ -1,5 +1,10 @@
-import { auth } from "@/auth";
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
+import { authConfig } from "@/auth.config";
+
+// Middleware uses only the edge-safe config (no MongoDB adapter / Node deps),
+// so this bundle never pulls in the `mongodb` driver or `node:*` modules.
+const { auth } = NextAuth(authConfig);
 
 const PUBLIC_PATHS = ["/login", "/api/auth"];
 

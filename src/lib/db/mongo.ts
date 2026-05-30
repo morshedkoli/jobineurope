@@ -1,7 +1,18 @@
+import dns from "node:dns";
 import { MongoClient, type Db, type Collection, type Document } from "mongodb";
 import { COLLECTIONS } from "./schema";
 
 const dbName = process.env.MONGODB_DB ?? "jobineurope";
+
+// Some networks' default resolver refuses SRV lookups from Node's c-ares
+// (querySrv ECONNREFUSED), which breaks `mongodb+srv://` URIs. Allow pointing
+// Node at explicit resolvers via DNS_SERVERS (comma-separated) when needed.
+const dnsServers = process.env.DNS_SERVERS?.split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+if (dnsServers?.length) {
+  dns.setServers(dnsServers);
+}
 
 /**
  * Reuse the client across hot reloads in dev and across invocations in
@@ -18,7 +29,9 @@ function createClientPromise(): Promise<MongoClient> {
   if (!uri) {
     throw new Error("MONGODB_URI is not set. Add it to .env.local");
   }
-  return new MongoClient(uri).connect();
+  // Fail fast (default is 30s) so a bad connection surfaces a clear error
+  // instead of hanging the request/login flow.
+  return new MongoClient(uri, { serverSelectionTimeoutMS: 10000 }).connect();
 }
 
 function getClientPromise(): Promise<MongoClient> {

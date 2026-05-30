@@ -10,6 +10,8 @@ export interface UserDoc {
   email: string;
   name?: string;
   image?: string;
+  /** scrypt hash (`salt:derivedKey`) for credentials login; absent for OAuth-only users. */
+  passwordHash?: string;
   createdAt: Date;
   settings?: {
     targetCountries: string[]; // e.g. ["DE", "RO"]
