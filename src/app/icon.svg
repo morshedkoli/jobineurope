@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tile" x1="8" y1="6" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a78bfa"/>
+      <stop offset="0.55" stop-color="#6d5efc"/>
+      <stop offset="1" stop-color="#5b4ef0"/>
+    </linearGradient>
+    <linearGradient id="spec" x1="32" y1="2" x2="32" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- gradient tile -->
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#tile)"/>
+  <!-- specular highlight (liquid-glass cue) -->
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#spec)"/>
+  <!-- bright top edge -->
+  <rect x="2.75" y="2.75" width="58.5" height="58.5" rx="17.25" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5"/>
+  <!-- lowercase j -->
+  <circle cx="37" cy="18" r="4.6" fill="#ffffff"/>
+  <path d="M37 27.5 L37 41.5 C37 50, 30 54, 22.5 50.5" fill="none" stroke="#ffffff" stroke-width="7.2" stroke-linecap="round"/>
+</svg>

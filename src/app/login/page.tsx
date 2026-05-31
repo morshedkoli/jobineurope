@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { auth, signIn } from "@/auth";
+import { Logo } from "@/components/Logo";
 import { PasswordField } from "./PasswordField";
 
 export default async function LoginPage({
@@ -38,12 +39,7 @@ export default async function LoginPage({
       </div>
 
       <div className="glass-strong w-full max-w-sm p-8">
-        <div className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--accent-2)] to-[var(--accent)] text-base font-bold text-white shadow-[0_4px_14px_-2px_var(--accent)]">
-            j
-          </span>
-          <h1 className="text-xl font-semibold tracking-tight">jobineurope</h1>
-        </div>
+        <Logo size={40} />
         <p className="mt-3 text-sm text-muted">
           Sign in to build your profile and find sponsorship-friendly roles in
           Germany &amp; Romania.

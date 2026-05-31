@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Logo } from "@/components/Logo";
 
 interface NavItem {
   href: string;
@@ -129,11 +130,8 @@ export function Sidebar() {
 
 function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 px-1">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--accent-2)] to-[var(--accent)] text-base font-bold text-white shadow-[0_4px_14px_-2px_var(--accent)]">
-        j
-      </span>
-      <span className="text-base font-semibold tracking-tight">jobineurope</span>
+    <Link href="/" className="px-1">
+      <Logo size={36} />
     </Link>
   );
 }
