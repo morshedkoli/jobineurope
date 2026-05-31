@@ -1,6 +1,6 @@
 import "server-only";
 import { ObjectId } from "mongodb";
-import { chatProvider, extractJson } from "@/lib/ai";
+import { chatProvider, extractJson, type ChatProvider } from "@/lib/ai";
 import { getCollection } from "@/lib/db/mongo";
 import type { AnswerProfileDoc, ProfileDoc, StructuredCv } from "@/lib/db/schema";
 
@@ -76,13 +76,16 @@ Rules:
 - If a field cannot be grounded in the profile, return an empty string for it.`;
 
 /** Draft answers from the profile via the LLM (does not persist). */
-export async function draftAnswers(userIdStr: string): Promise<Record<string, string>> {
+export async function draftAnswers(
+  userIdStr: string,
+  chat: ChatProvider = chatProvider(),
+): Promise<Record<string, string>> {
   const userId = new ObjectId(userIdStr);
   const profiles = await getCollection<ProfileDoc>("profile");
   const profile = await profiles.findOne({ userId });
   if (!profile?.structuredCv) throw new ProfileMissingError();
 
-  const response = await chatProvider().chat(
+  const response = await chat.chat(
     [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: `PROFILE:\n${candidateBrief(profile.structuredCv, profile)}` },

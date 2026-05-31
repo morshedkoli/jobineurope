@@ -1,6 +1,6 @@
 import "server-only";
 import { extractText, getDocumentProxy } from "unpdf";
-import { chatProvider, extractJson } from "@/lib/ai";
+import { chatProvider, extractJson, type ChatProvider } from "@/lib/ai";
 import type { StructuredCv } from "@/lib/db/schema";
 
 /** Extract plain text from a PDF buffer (serverless-friendly via unpdf). */
@@ -36,9 +36,12 @@ Rules:
   (the candidate is applying to Europe from outside the EU).
 - Omit unknown optional fields rather than inventing values.`;
 
-export async function parseCvText(rawText: string): Promise<StructuredCv> {
+export async function parseCvText(
+  rawText: string,
+  chat: ChatProvider = chatProvider(),
+): Promise<StructuredCv> {
   const truncated = rawText.slice(0, 24_000); // keep prompt within model limits
-  const response = await chatProvider().chat(
+  const response = await chat.chat(
     [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: `CV TEXT:\n\n${truncated}` },

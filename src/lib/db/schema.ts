@@ -122,6 +122,16 @@ export interface AnswerProfileDoc {
   updatedAt: Date;
 }
 
+/** Per-user encrypted API key storage. */
+export interface UserApiKeyDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  keyName: string;
+  ciphertext: string;
+  iv: string;
+  updatedAt: Date;
+}
+
 export const COLLECTIONS = {
   users: "users",
   accounts: "accounts", // managed by @auth/mongodb-adapter; stores OAuth tokens
@@ -131,4 +141,5 @@ export const COLLECTIONS = {
   applications: "applications",
   coverLetters: "coverLetters",
   answerProfile: "answerProfile",
+  userApiKeys: "userApiKeys",
 } as const;

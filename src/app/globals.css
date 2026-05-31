@@ -292,3 +292,69 @@ body {
 /* Helpers --------------------------------------------------------------- */
 .text-muted { color: var(--fg-muted); }
 .text-faint { color: var(--fg-faint); }
+
+/* Segmented tab control ------------------------------------------------ */
+.tab-bar {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--glass-bg-soft);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+}
+
+.tab-btn {
+  padding: 0.375rem 1.1rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+.tab-btn:hover {
+  color: var(--fg);
+  background: rgba(255,255,255,0.15);
+}
+
+.tab-btn[aria-selected="true"] {
+  background: var(--glass-bg-strong);
+  color: var(--fg);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* Divider line --------------------------------------------------------- */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  margin: 1.5rem 0;
+}
+
+/* Onboarding step list ------------------------------------------------- */
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  transition: background 150ms ease;
+}
+.step-item:hover {
+  background: var(--glass-bg-soft);
+}
+
+/* Toast notification --------------------------------------------------- */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(1rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.toast {
+  animation: slide-up 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}

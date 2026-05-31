@@ -18,17 +18,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       <div className="md:pl-64">
         {/* Desktop top bar */}
-        <header className="sticky top-0 z-20 hidden px-6 py-4 md:block">
-          <div className="glass flex items-center justify-between rounded-2xl px-5 py-2.5">
-            <p className="text-sm text-muted">
-              Your path to a developer job in Europe
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2.5">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[var(--accent-2)] to-[var(--accent)] text-sm font-semibold text-white">
+        <header className="sticky top-0 z-20 hidden px-6 py-3 md:block">
+          <div className="glass flex items-center justify-between rounded-2xl px-4 py-2">
+            <p className="text-xs text-faint">DE · RO · sponsorship-friendly roles</p>
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[var(--accent-2)] to-[var(--accent)] text-xs font-bold text-white">
                   {initial}
                 </span>
-                <span className="text-sm font-medium">{name}</span>
+                <span className="text-sm font-medium text-muted">{name}</span>
               </div>
               <SignOutButton />
             </div>

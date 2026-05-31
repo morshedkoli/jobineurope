@@ -2,6 +2,7 @@ import "server-only";
 import { ObjectId } from "mongodb";
 import { getCollection, getDb } from "@/lib/db/mongo";
 import { availableProviders } from "@/lib/ai";
+import { getApiKey } from "@/lib/db/user-keys";
 import type { ProfileDoc } from "@/lib/db/schema";
 
 export type ConnectorState = "connected" | "configured" | "available" | "missing";
@@ -22,6 +23,8 @@ export interface Connector {
  */
 export async function getConnectors(userId: string): Promise<Connector[]> {
   const env = (k: string) => Boolean(process.env[k]);
+  const userKey = (k: string) => getApiKey(userId, k).then(Boolean);
+  const hasKey = async (k: string) => (await userKey(k)) || env(k);
 
   // Identity providers — "connected" if the user has actually linked the
   // account (an accounts doc exists), otherwise just "configured" if creds set.
@@ -97,11 +100,14 @@ export async function getConnectors(userId: string): Promise<Connector[]> {
       name: "Adzuna",
       category: "Job sources",
       description: "Aggregated listings across DE/RO and more.",
-      state: env("ADZUNA_APP_ID") && env("ADZUNA_APP_KEY") ? "configured" : "missing",
+      state:
+        (await hasKey("ADZUNA_APP_ID")) && (await hasKey("ADZUNA_APP_KEY"))
+          ? "configured"
+          : "missing",
       detail:
-        env("ADZUNA_APP_ID") && env("ADZUNA_APP_KEY")
+        (await hasKey("ADZUNA_APP_ID")) && (await hasKey("ADZUNA_APP_KEY"))
           ? "API credentials present."
-          : "Set ADZUNA_APP_ID / ADZUNA_APP_KEY to enable.",
+          : "Add ADZUNA_APP_ID / ADZUNA_APP_KEY on the Connectors page.",
     },
     {
       id: "mongodb",
@@ -118,30 +124,22 @@ export async function getConnectors(userId: string): Promise<Connector[]> {
       name: `AI chat · ${chatProvider}`,
       category: "Data & AI",
       description: "Powers matching rationale, cover letters, and answers.",
-      state:
-        chatProvider === "cloudflare"
-          ? ai.cloudflare
-            ? "configured"
-            : "missing"
-          : ai.chat.includes(chatProvider as never)
-            ? "configured"
-            : "missing",
-      detail: `${ai.chat.length} chat provider${ai.chat.length === 1 ? "" : "s"} have keys${ai.cloudflare ? " · Cloudflare ready" : ""}.`,
+      state: (() => {
+        if (chatProvider === "cloudflare") return ai.cloudflare ? "configured" : "missing";
+        return ai.chat.includes(chatProvider as never) ? "configured" : "missing";
+      })(),
+      detail: `${ai.chat.length} chat provider${ai.chat.length === 1 ? "" : "s"} have env keys · user keys checked at runtime.`,
     },
     {
       id: "ai-embed",
       name: `AI embeddings · ${embedProvider}`,
       category: "Data & AI",
       description: "Vector embeddings for semantic job shortlisting.",
-      state:
-        embedProvider === "cloudflare"
-          ? ai.cloudflare
-            ? "configured"
-            : "missing"
-          : ai.embed.includes(embedProvider as never)
-            ? "configured"
-            : "missing",
-      detail: `${ai.embed.length} embed provider${ai.embed.length === 1 ? "" : "s"} have keys.`,
+      state: (() => {
+        if (embedProvider === "cloudflare") return ai.cloudflare ? "configured" : "missing";
+        return ai.embed.includes(embedProvider as never) ? "configured" : "missing";
+      })(),
+      detail: `${ai.embed.length} embed provider${ai.embed.length === 1 ? "" : "s"} have env keys · user keys checked at runtime.`,
     },
   ];
 }

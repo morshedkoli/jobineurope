@@ -1,5 +1,5 @@
 import "server-only";
-import { chatProvider, extractJson } from "@/lib/ai";
+import { chatProvider, extractJson, type ChatProvider } from "@/lib/ai";
 import type { StructuredCv, JobDoc } from "@/lib/db/schema";
 
 export interface FitScore {
@@ -57,8 +57,9 @@ function jobSummary(job: Pick<JobDoc, "title" | "company" | "location" | "countr
 export async function scoreJob(
   cv: StructuredCv,
   job: Pick<JobDoc, "title" | "company" | "location" | "country" | "remote" | "descriptionText" | "mentionsVisaSponsorship">,
+  chat: ChatProvider = chatProvider(),
 ): Promise<FitScore> {
-  const response = await chatProvider().chat(
+  const response = await chat.chat(
     [
       { role: "system", content: SYSTEM_PROMPT },
       {

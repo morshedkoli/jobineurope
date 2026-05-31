@@ -7,6 +7,7 @@ import {
   ProfileMissingError,
   saveAnswers,
 } from "@/lib/apply/answers";
+import { chatProviderForUser } from "@/lib/ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -31,7 +32,8 @@ export async function POST() {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const fields = await draftAnswers(userId);
+    const chat = await chatProviderForUser(userId);
+    const fields = await draftAnswers(userId, chat);
     return NextResponse.json({ ok: true, fields });
   } catch (err) {
     if (err instanceof ProfileMissingError) {

@@ -3,8 +3,9 @@ import type { ChatProvider, EmbedProvider } from "./types";
 import { OpenAICompatChat, OpenAICompatEmbed } from "./providers/openai-compatible";
 import { CloudflareChat, CloudflareEmbed } from "./providers/cloudflare";
 import { PROVIDERS, isProviderId, type ProviderId, type ProviderSpec } from "./registry";
+import { getApiKey } from "@/lib/db/user-keys";
 
-export type { ChatMessage, ChatOptions } from "./types";
+export type { ChatMessage, ChatOptions, ChatProvider, EmbedProvider } from "./types";
 export { PROVIDERS, type ProviderId } from "./registry";
 
 /**
@@ -115,6 +116,105 @@ export function availableProviders(): {
     embed: ids.filter((p) => p.embedModel).map((p) => p.id),
     cloudflare: Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN),
   };
+}
+
+/**
+ * Build a ChatProvider using the user's saved keys, falling back to env vars.
+ * Always builds fresh — not cached — since keys are per-user.
+ */
+export async function chatProviderForUser(userId: string): Promise<ChatProvider> {
+  const id =
+    (await getApiKey(userId, "AI_CHAT_PROVIDER")) ??
+    process.env.AI_CHAT_PROVIDER ??
+    "openrouter";
+
+  if (id === "cloudflare") {
+    const accountId =
+      (await getApiKey(userId, "CLOUDFLARE_ACCOUNT_ID")) ??
+      process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken =
+      (await getApiKey(userId, "CLOUDFLARE_API_TOKEN")) ??
+      process.env.CLOUDFLARE_API_TOKEN;
+    if (!accountId || !apiToken) {
+      throw new Error("Cloudflare Workers AI is not configured. Add credentials on the Connectors page.");
+    }
+    return new CloudflareChat({
+      accountId,
+      apiToken,
+      chatModel: process.env.CLOUDFLARE_CHAT_MODEL ?? "@cf/meta/llama-3.1-8b-instruct",
+    });
+  }
+
+  if (!isProviderId(id)) throw new Error(`Unknown AI_CHAT_PROVIDER: ${id}`);
+  const spec = PROVIDERS[id];
+  const chatModel = process.env[`${spec.id.toUpperCase()}_CHAT_MODEL`] ?? spec.chatModel;
+  if (!chatModel) throw new Error(`${spec.label} has no chat model`);
+
+  const apiKey =
+    (await getApiKey(userId, spec.apiKeyEnv)) ?? process.env[spec.apiKeyEnv];
+  if (!apiKey) {
+    throw new Error(
+      `No API key for ${spec.label}. Add ${spec.apiKeyEnv} on the Connectors page.`,
+    );
+  }
+
+  return new OpenAICompatChat({
+    name: spec.id,
+    baseUrl: spec.baseUrl,
+    apiKey,
+    chatModel,
+    extraHeaders: referHeaders(spec),
+  });
+}
+
+/**
+ * Build an EmbedProvider using the user's saved keys, falling back to env vars.
+ */
+export async function embedProviderForUser(userId: string): Promise<EmbedProvider> {
+  const id =
+    (await getApiKey(userId, "AI_EMBED_PROVIDER")) ??
+    process.env.AI_EMBED_PROVIDER ??
+    "cloudflare";
+
+  if (id === "cloudflare") {
+    const accountId =
+      (await getApiKey(userId, "CLOUDFLARE_ACCOUNT_ID")) ??
+      process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken =
+      (await getApiKey(userId, "CLOUDFLARE_API_TOKEN")) ??
+      process.env.CLOUDFLARE_API_TOKEN;
+    if (!accountId || !apiToken) {
+      throw new Error("Cloudflare Workers AI is not configured. Add credentials on the Connectors page.");
+    }
+    return new CloudflareEmbed({
+      accountId,
+      apiToken,
+      embedModel: process.env.CLOUDFLARE_EMBED_MODEL ?? "@cf/baai/bge-m3",
+      embedDimensions: Number(process.env.EMBED_DIMENSIONS ?? 1024),
+    });
+  }
+
+  if (!isProviderId(id)) throw new Error(`Unknown AI_EMBED_PROVIDER: ${id}`);
+  const spec = PROVIDERS[id];
+  const embedModel = process.env[`${spec.id.toUpperCase()}_EMBED_MODEL`] ?? spec.embedModel;
+  if (!embedModel) throw new Error(`${spec.label} has no embeddings model`);
+
+  const apiKey =
+    (await getApiKey(userId, spec.apiKeyEnv)) ?? process.env[spec.apiKeyEnv];
+  if (!apiKey) {
+    throw new Error(
+      `No API key for ${spec.label}. Add ${spec.apiKeyEnv} on the Connectors page.`,
+    );
+  }
+
+  return new OpenAICompatEmbed({
+    name: spec.id,
+    baseUrl: spec.baseUrl,
+    apiKey,
+    embedModel,
+    embedDimensions: Number(process.env.EMBED_DIMENSIONS ?? spec.embedDimensions ?? 1024),
+    extraHeaders: referHeaders(spec),
+  });
 }
 
 /**

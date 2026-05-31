@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import { auth } from "@/auth";
 import { getCollection } from "@/lib/db/mongo";
 import { pdfToText, parseCvText } from "@/lib/profile/parse-cv";
+import { chatProviderForUser } from "@/lib/ai";
 import type { ProfileDoc } from "@/lib/db/schema";
 
 export const runtime = "nodejs";
@@ -43,7 +44,8 @@ export async function POST(req: Request) {
 
   let structuredCv;
   try {
-    structuredCv = await parseCvText(rawText);
+    const chat = await chatProviderForUser(session.user.id);
+    structuredCv = await parseCvText(rawText, chat);
   } catch (err) {
     console.error("CV parse failed", err);
     return NextResponse.json({ error: "AI parsing failed" }, { status: 502 });

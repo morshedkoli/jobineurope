@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { enrichWebsite, InvalidWebsiteError } from "@/lib/profile/website";
+import { chatProviderForUser } from "@/lib/ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -22,7 +23,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const website = await enrichWebsite(session.user.id, url);
+    const chat = await chatProviderForUser(session.user.id);
+    const website = await enrichWebsite(session.user.id, url, chat);
     return NextResponse.json({ ok: true, website });
   } catch (err) {
     if (err instanceof InvalidWebsiteError) {

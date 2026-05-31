@@ -23,7 +23,6 @@ export default async function LoginPage({
         redirectTo: "/",
       });
     } catch (err) {
-      // signIn throws a redirect on success; only swallow auth failures.
       if (err instanceof AuthError) {
         redirect("/login?error=CredentialsSignin");
       }
@@ -32,44 +31,116 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="relative flex flex-1 items-center justify-center p-6">
-      {/* Aurora light source behind the glass — same as the dashboard. */}
+    <main className="relative flex min-h-screen items-stretch">
       <div className="aurora" aria-hidden="true">
         <span />
       </div>
 
-      <div className="glass-strong w-full max-w-sm p-8">
-        <Logo size={40} />
-        <p className="mt-3 text-sm text-muted">
-          Sign in to build your profile and find sponsorship-friendly roles in
-          Germany &amp; Romania.
-        </p>
+      {/* ── Left brand panel (desktop only) ── */}
+      <div className="hidden flex-col justify-between p-10 lg:flex lg:w-[45%]">
+        <div className="flex items-center gap-3">
+          <Logo size={36} markOnly />
+          <span className="text-lg font-semibold tracking-tight">jobineurope</span>
+        </div>
 
-        <form action={credentialsLogin} className="mt-6 flex flex-col gap-3">
-          {error && (
-            <p
-              role="alert"
-              className="rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-600 dark:text-red-300"
-            >
-              Invalid email or password.
+        <div>
+          <h1 className="text-4xl font-semibold leading-tight tracking-tight xl:text-5xl">
+            Your AI-powered<br />
+            path to a job<br />
+            in Europe.
+          </h1>
+          <p className="mt-4 max-w-sm text-base text-muted">
+            Ranked matches, cover letters, and application tracking — built for
+            developers targeting Germany &amp; Romania.
+          </p>
+
+          <ul className="mt-8 space-y-4">
+            {FEATURES.map((f) => (
+              <li key={f.title} className="flex items-start gap-3">
+                <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--accent)]/15 text-sm text-[var(--accent)]">
+                  {f.icon}
+                </span>
+                <div>
+                  <p className="text-sm font-medium">{f.title}</p>
+                  <p className="text-xs text-muted">{f.description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="text-xs text-faint">Personal dashboard · not for resale</p>
+      </div>
+
+      {/* ── Right form panel ── */}
+      <div className="flex flex-1 items-center justify-center p-6 lg:p-12">
+        <div className="glass-strong w-full max-w-sm rounded-3xl p-8 shadow-2xl">
+          {/* Mobile-only logo */}
+          <div className="mb-6 lg:hidden">
+            <Logo size={36} />
+          </div>
+
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Sign in</h2>
+            <p className="mt-1 text-sm text-muted">
+              Welcome back — your job hunt awaits.
             </p>
-          )}
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span className="font-medium">Email</span>
-            <input
-              type="email"
-              name="email"
-              required
-              autoComplete="email"
-              className="glass-input"
-            />
-          </label>
-          <PasswordField />
-          <button type="submit" className="glass-btn glass-btn-primary mt-1 w-full">
-            Sign in
-          </button>
-        </form>
+          </div>
+
+          <form action={credentialsLogin} className="flex flex-col gap-4">
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-red-500/15 px-3 py-2.5 text-sm text-red-600 dark:text-red-300"
+              >
+                Invalid email or password. Please try again.
+              </p>
+            )}
+
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="font-medium">Email</span>
+              <input
+                type="email"
+                name="email"
+                required
+                autoFocus
+                autoComplete="email"
+                className="glass-input"
+                placeholder="you@example.com"
+              />
+            </label>
+
+            <PasswordField />
+
+            <button type="submit" className="glass-btn glass-btn-primary mt-2 w-full py-2.5">
+              Sign in →
+            </button>
+          </form>
+        </div>
       </div>
     </main>
   );
 }
+
+const FEATURES = [
+  {
+    icon: "◆",
+    title: "AI-ranked job matches",
+    description: "Semantic search + LLM scoring against your CV across Arbeitnow & Adzuna.",
+  },
+  {
+    icon: "◇",
+    title: "One-click cover letters",
+    description: "Generate tailored cover letters in your tone, grounded in your real profile.",
+  },
+  {
+    icon: "●",
+    title: "Application pipeline",
+    description: "Track every application from saved → interview → offer in a Kanban board.",
+  },
+  {
+    icon: "▲",
+    title: "Visa-sponsorship filter",
+    description: "First-class filter for roles that sponsor relocation from outside the EU.",
+  },
+];

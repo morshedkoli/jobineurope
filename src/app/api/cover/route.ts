@@ -8,6 +8,7 @@ import {
   JobNotFoundError,
   ProfileMissingError,
 } from "@/lib/cover/generate";
+import { chatProviderForUser } from "@/lib/ai";
 import type { CoverLetterDoc } from "@/lib/db/schema";
 
 export const runtime = "nodejs";
@@ -60,7 +61,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const doc = await generateCoverLetter(userId, jobId, tone);
+    const chat = await chatProviderForUser(userId);
+    const doc = await generateCoverLetter(userId, jobId, tone, chat);
     return NextResponse.json({ ok: true, coverLetter: doc });
   } catch (err) {
     if (err instanceof ProfileMissingError || err instanceof JobNotFoundError) {

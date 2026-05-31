@@ -1,6 +1,6 @@
 import "server-only";
 import { ObjectId } from "mongodb";
-import { chatProvider } from "@/lib/ai";
+import { chatProvider, type ChatProvider } from "@/lib/ai";
 import { getCollection } from "@/lib/db/mongo";
 import { stripHtml } from "@/lib/jobs/types";
 import type { ProfileDoc } from "@/lib/db/schema";
@@ -88,8 +88,8 @@ a job-matching system. Given the page text, write a concise professional summary
 (max 120 words): who they are, their core skills, notable projects, and focus areas.
 Plain prose, no preamble, no markdown headings.`;
 
-async function summarize(text: string): Promise<string> {
-  const summary = await chatProvider().chat(
+async function summarize(text: string, chat: ChatProvider): Promise<string> {
+  const summary = await chat.chat(
     [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: `WEBSITE TEXT:\n\n${text}` },
@@ -103,6 +103,7 @@ async function summarize(text: string): Promise<string> {
 export async function enrichWebsite(
   userIdStr: string,
   rawUrl: string,
+  chat: ChatProvider = chatProvider(),
 ): Promise<NonNullable<ProfileDoc["website"]>> {
   const url = normalizeUrl(rawUrl);
   const text = await fetchPageText(url);
@@ -110,7 +111,7 @@ export async function enrichWebsite(
     throw new InvalidWebsiteError("That page has too little readable text to summarize.");
   }
 
-  const summary = await summarize(text);
+  const summary = await summarize(text, chat);
   const website: NonNullable<ProfileDoc["website"]> = { url: url.toString(), summary };
 
   const userId = new ObjectId(userIdStr);

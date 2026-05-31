@@ -1,6 +1,6 @@
 import "server-only";
 import { ObjectId } from "mongodb";
-import { chatProvider } from "@/lib/ai";
+import { chatProvider, type ChatProvider } from "@/lib/ai";
 import { getCollection } from "@/lib/db/mongo";
 import type { CoverLetterDoc, JobDoc, ProfileDoc, StructuredCv } from "@/lib/db/schema";
 
@@ -89,6 +89,7 @@ export async function generateCoverLetter(
   userIdStr: string,
   jobIdStr: string,
   tone: Tone,
+  chat: ChatProvider = chatProvider(),
 ): Promise<CoverLetterDoc> {
   const userId = new ObjectId(userIdStr);
   const jobId = new ObjectId(jobIdStr);
@@ -106,7 +107,7 @@ export async function generateCoverLetter(
   if (!job) throw new JobNotFoundError();
 
   const body = (
-    await chatProvider().chat(
+    await chat.chat(
       [
         { role: "system", content: SYSTEM_PROMPT },
         {

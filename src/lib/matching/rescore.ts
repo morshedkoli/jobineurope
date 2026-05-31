@@ -6,6 +6,7 @@ import { embedProfile, embedMissingJobs } from "./embeddings";
 import { vectorShortlist, type ShortlistFilter } from "./shortlist";
 import { scoreJob } from "./score";
 import { ensureVectorIndex } from "./search-index";
+import type { ChatProvider, EmbedProvider } from "@/lib/ai";
 
 export interface RescoreResult {
   profileEmbedded: boolean;
@@ -27,6 +28,8 @@ export interface RescoreOptions {
 export async function rescoreMatches(
   userId: ObjectId,
   opts: RescoreOptions = {},
+  chat?: ChatProvider,
+  embed?: EmbedProvider,
 ): Promise<RescoreResult> {
   await ensureVectorIndex();
 
@@ -39,12 +42,12 @@ export async function rescoreMatches(
   let profileEmbedded = false;
   let vector = profile.profileEmbedding;
   if (!vector || vector.length === 0) {
-    vector = (await embedProfile(userId)) ?? undefined;
+    vector = (await embedProfile(userId, embed)) ?? undefined;
     profileEmbedded = true;
   }
   if (!vector) throw new Error("Could not embed profile.");
 
-  const jobsEmbedded = await embedMissingJobs(200);
+  const jobsEmbedded = await embedMissingJobs(200, embed);
 
   const filter: ShortlistFilter = {
     visaOnly: opts.visaOnly ?? false,
@@ -59,7 +62,7 @@ export async function rescoreMatches(
   let scored = 0;
   for (const job of toScore) {
     try {
-      const fit = await scoreJob(profile.structuredCv, job);
+      const fit = await scoreJob(profile.structuredCv, job, chat);
       await matches.updateOne(
         { userId, jobId: job._id },
         {
