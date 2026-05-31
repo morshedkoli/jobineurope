@@ -23,9 +23,9 @@ interface MatchItem {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 75) return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200";
-  if (score >= 50) return "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200";
-  return "bg-neutral-200 text-neutral-700 dark:bg-white/10 dark:text-neutral-300";
+  if (score >= 75) return "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300";
+  if (score >= 50) return "bg-amber-500/15 text-amber-600 dark:text-amber-300";
+  return "bg-black/5 text-muted dark:bg-white/10";
 }
 
 export function MatchesPanel() {
@@ -54,12 +54,13 @@ export function MatchesPanel() {
     }
   }
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch("/api/matches?limit=50");
-    const data = await res.json();
-    setItems(data.items ?? []);
-    setLoading(false);
+  const load = useCallback(() => {
+    return fetch("/api/matches?limit=50")
+      .then((res) => res.json())
+      .then((data) => {
+        setItems(data.items ?? []);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -81,6 +82,7 @@ export function MatchesPanel() {
         `Scored ${data.scored} of ${data.shortlisted} shortlisted` +
           (data.jobsEmbedded ? ` · embedded ${data.jobsEmbedded} new jobs` : ""),
       );
+      setLoading(true);
       await load();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Ranking failed");
@@ -90,16 +92,16 @@ export function MatchesPanel() {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-neutral-900">
+    <section className="glass mt-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Ranked matches</h2>
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted">
             {loading ? "Loading…" : `${items.length} scored against your profile`}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1.5 text-sm text-neutral-500">
+          <label className="flex items-center gap-1.5 text-sm text-muted">
             <input
               type="checkbox"
               checked={visaOnly}
@@ -107,24 +109,17 @@ export function MatchesPanel() {
             />
             Sponsorship only
           </label>
-          <button
-            onClick={rank}
-            disabled={ranking}
-            className="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-          >
+          <button onClick={rank} disabled={ranking} className="glass-btn glass-btn-primary">
             {ranking ? "Ranking…" : "Rank my matches"}
           </button>
         </div>
       </div>
 
-      {message && <p className="mt-3 text-xs text-neutral-500">{message}</p>}
+      {message && <p className="mt-3 text-xs text-muted">{message}</p>}
 
       <ul className="mt-4 space-y-3">
         {items.map((m) => (
-          <li
-            key={m._id}
-            className="rounded-xl border border-black/5 p-4 dark:border-white/5"
-          >
+          <li key={m._id} className="glass-soft p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <a
@@ -135,7 +130,7 @@ export function MatchesPanel() {
                 >
                   {m.job.title}
                 </a>
-                <p className="truncate text-sm text-neutral-500">
+                <p className="truncate text-sm text-muted">
                   {[m.job.company, m.job.location || m.job.country, m.job.remote ? "Remote" : null]
                     .filter(Boolean)
                     .join(" · ")}
@@ -145,7 +140,7 @@ export function MatchesPanel() {
                 <button
                   onClick={() => saveToTracker(m.job._id)}
                   disabled={saved.has(m.job._id)}
-                  className="rounded-lg border border-black/15 px-2.5 py-1 text-xs font-medium disabled:opacity-50 dark:border-white/20"
+                  className="glass-btn !px-2.5 !py-1 text-xs"
                 >
                   {saved.has(m.job._id) ? "Saved ✓" : "Save to tracker"}
                 </button>
@@ -158,19 +153,15 @@ export function MatchesPanel() {
             </div>
 
             {m.rationale && (
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-                {m.rationale}
-              </p>
+              <p className="mt-2 text-sm text-muted">{m.rationale}</p>
             )}
 
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="rounded-md bg-black/5 px-2 py-0.5 text-xs text-neutral-500 dark:bg-white/10">
-                sponsorship: {m.sponsorshipFit}
-              </span>
+              <span className="glass-chip">sponsorship: {m.sponsorshipFit}</span>
               {m.skillGaps.slice(0, 6).map((gap) => (
                 <span
                   key={gap}
-                  className="rounded-md bg-red-50 px-2 py-0.5 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-200"
+                  className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs font-medium text-red-600 dark:text-red-300"
                 >
                   gap: {gap}
                 </span>
@@ -181,7 +172,7 @@ export function MatchesPanel() {
           </li>
         ))}
         {!loading && items.length === 0 && (
-          <li className="py-6 text-center text-sm text-neutral-500">
+          <li className="py-6 text-center text-sm text-muted">
             No matches yet. Upload your CV, fetch jobs, then hit “Rank my matches”.
           </li>
         )}

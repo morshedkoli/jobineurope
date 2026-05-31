@@ -27,7 +27,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      {/* Browser extensions (Bitdefender, ColorZilla, etc.) inject attributes
+          onto <body> before React hydrates, causing a benign attribute-only
+          hydration mismatch. suppressHydrationWarning silences just that, one
+          level deep — it does not affect hydration of the children. */}
+      <body suppressHydrationWarning className="min-h-full flex flex-col">
+        {children}
+      </body>
     </html>
   );
 }

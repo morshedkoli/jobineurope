@@ -32,17 +32,21 @@ export function TrackerPanel() {
   const [items, setItems] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch("/api/applications");
-    const data = await res.json();
-    setItems(data.items ?? []);
-    setLoading(false);
+  const load = useCallback(() => {
+    return fetch("/api/applications")
+      .then((res) => res.json())
+      .then((data) => {
+        setItems(data.items ?? []);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
     void load();
-    const onChange = () => void load();
+    const onChange = () => {
+      setLoading(true);
+      void load();
+    };
     window.addEventListener("tracker:changed", onChange);
     return () => window.removeEventListener("tracker:changed", onChange);
   }, [load]);
@@ -58,7 +62,10 @@ export function TrackerPanel() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    if (!res.ok) void load(); // roll back to server truth
+    if (!res.ok) {
+      setLoading(true);
+      void load(); // roll back to server truth
+    }
   }
 
   async function saveNotes(app: Application, notes: string) {
@@ -77,15 +84,15 @@ export function TrackerPanel() {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-neutral-900">
+    <section className="glass mt-6 p-6">
       <h2 className="text-lg font-semibold">Application tracker</h2>
-      <p className="mt-1 text-sm text-neutral-500">
+      <p className="mt-1 text-sm text-muted">
         {loading ? "Loading…" : `${items.length} tracked`} · save jobs from your
         matches, then move them across the pipeline.
       </p>
 
       {!loading && items.length === 0 && (
-        <p className="mt-4 text-sm text-neutral-500">
+        <p className="mt-4 text-sm text-muted">
           No applications tracked yet. Use “Save to tracker” on a match.
         </p>
       )}
@@ -95,20 +102,14 @@ export function TrackerPanel() {
           {STATUSES.map((status) => {
             const cards = items.filter((a) => a.status === status);
             return (
-              <div
-                key={status}
-                className="rounded-xl border border-black/5 bg-black/[0.02] p-3 dark:border-white/5 dark:bg-white/[0.02]"
-              >
+              <div key={status} className="glass-soft p-3">
                 <h3 className="mb-2 flex items-center justify-between text-sm font-medium">
                   {STATUS_LABELS[status]}
-                  <span className="text-xs text-neutral-400">{cards.length}</span>
+                  <span className="text-xs text-faint">{cards.length}</span>
                 </h3>
                 <ul className="space-y-2">
                   {cards.map((app) => (
-                    <li
-                      key={app._id}
-                      className="rounded-lg border border-black/10 bg-white p-3 dark:border-white/10 dark:bg-neutral-900"
-                    >
+                    <li key={app._id} className="glass-strong rounded-lg p-3">
                       {app.job ? (
                         <a
                           href={app.job.applyUrl}
@@ -119,12 +120,12 @@ export function TrackerPanel() {
                           {app.job.title}
                         </a>
                       ) : (
-                        <span className="text-sm font-medium text-neutral-400">
+                        <span className="text-sm font-medium text-faint">
                           (job removed)
                         </span>
                       )}
                       {app.job && (
-                        <p className="truncate text-xs text-neutral-500">
+                        <p className="truncate text-xs text-muted">
                           {[app.job.company, app.job.location || app.job.country]
                             .filter(Boolean)
                             .join(" · ")}
@@ -135,7 +136,7 @@ export function TrackerPanel() {
                         <select
                           value={app.status}
                           onChange={(e) => changeStatus(app, e.target.value as Status)}
-                          className="flex-1 rounded-md border border-black/15 px-1.5 py-1 text-xs dark:border-white/20 dark:bg-neutral-800"
+                          className="glass-input flex-1 !px-1.5 !py-1 text-xs"
                         >
                           {STATUSES.map((s) => (
                             <option key={s} value={s}>
@@ -146,7 +147,7 @@ export function TrackerPanel() {
                         <button
                           onClick={() => remove(app)}
                           aria-label="Remove from tracker"
-                          className="rounded-md border border-black/15 px-2 py-1 text-xs text-neutral-500 hover:text-red-600 dark:border-white/20"
+                          className="glass-btn !px-2 !py-1 text-xs hover:text-red-600"
                         >
                           ✕
                         </button>
@@ -157,7 +158,7 @@ export function TrackerPanel() {
                         onBlur={(e) => void saveNotes(app, e.target.value)}
                         rows={2}
                         placeholder="Notes…"
-                        className="mt-2 w-full rounded-md border border-black/10 p-1.5 text-xs dark:border-white/10 dark:bg-neutral-800"
+                        className="glass-input mt-2 text-xs"
                       />
                     </li>
                   ))}

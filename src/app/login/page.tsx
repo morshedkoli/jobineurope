@@ -31,10 +31,20 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <div className="w-full max-w-sm rounded-2xl border border-black/10 bg-white p-8 shadow-sm dark:border-white/10 dark:bg-neutral-900">
-        <h1 className="text-2xl font-semibold tracking-tight">jobineurope</h1>
-        <p className="mt-2 text-sm text-neutral-500">
+    <main className="relative flex flex-1 items-center justify-center p-6">
+      {/* Aurora light source behind the glass — same as the dashboard. */}
+      <div className="aurora" aria-hidden="true">
+        <span />
+      </div>
+
+      <div className="glass-strong w-full max-w-sm p-8">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--accent-2)] to-[var(--accent)] text-base font-bold text-white shadow-[0_4px_14px_-2px_var(--accent)]">
+            j
+          </span>
+          <h1 className="text-xl font-semibold tracking-tight">jobineurope</h1>
+        </div>
+        <p className="mt-3 text-sm text-muted">
           Sign in to build your profile and find sponsorship-friendly roles in
           Germany &amp; Romania.
         </p>
@@ -43,26 +53,23 @@ export default async function LoginPage({
           {error && (
             <p
               role="alert"
-              className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300"
+              className="rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-600 dark:text-red-300"
             >
               Invalid email or password.
             </p>
           )}
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex flex-col gap-1.5 text-sm">
             <span className="font-medium">Email</span>
             <input
               type="email"
               name="email"
               required
               autoComplete="email"
-              className="rounded-lg border border-black/15 px-3 py-2 text-sm outline-none focus:border-neutral-900 dark:border-white/20 dark:bg-neutral-800 dark:focus:border-white"
+              className="glass-input"
             />
           </label>
           <PasswordField />
-          <button
-            type="submit"
-            className="mt-1 w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
-          >
+          <button type="submit" className="glass-btn glass-btn-primary mt-1 w-full">
             Sign in
           </button>
         </form>

@@ -1,75 +1,114 @@
-import { ObjectId } from "mongodb";
-import { auth, signOut } from "@/auth";
-import { getCollection } from "@/lib/db/mongo";
-import type { ProfileDoc } from "@/lib/db/schema";
-import { CvUpload } from "./CvUpload";
-import { EnrichPanel } from "./EnrichPanel";
-import { MatchesPanel } from "./MatchesPanel";
-import { TrackerPanel } from "./TrackerPanel";
-import { AnswerProfile } from "./AnswerProfile";
-import { JobsPanel } from "./JobsPanel";
+import Link from "next/link";
+import { auth } from "@/auth";
+import { getOverview } from "@/lib/overview/summary";
+import { PageHeading, StatCard, GlassCard } from "@/components/glass";
 
-export default async function DashboardPage() {
+export default async function OverviewPage() {
   const session = await auth();
-  // middleware guarantees a session, but narrow for types.
   const userId = session?.user?.id;
+  const data = userId ? await getOverview(userId) : null;
 
-  let cv: ProfileDoc["structuredCv"] = undefined;
-  let github: ProfileDoc["github"] = undefined;
-  let website: ProfileDoc["website"] = undefined;
-  if (userId) {
-    const profiles = await getCollection<ProfileDoc>("profile");
-    const profile = await profiles.findOne({ userId: new ObjectId(userId) });
-    cv = profile?.structuredCv;
-    github = profile?.github;
-    website = profile?.website;
-  }
+  const checklist = [
+    { label: "Upload your CV", done: data?.profile.hasCv, href: "/profile" },
+    { label: "Connect GitHub", done: data?.profile.hasGithub, href: "/connectors" },
+    { label: "Add your website", done: data?.profile.hasWebsite, href: "/profile" },
+    { label: "Draft apply answers", done: data?.profile.hasAnswers, href: "/profile" },
+  ];
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-      <header className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-neutral-500">
-            {session?.user?.name ?? session?.user?.email}
-          </p>
-        </div>
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/login" });
-          }}
-        >
-          <button
-            type="submit"
-            className="rounded-lg border border-black/15 px-3 py-1.5 text-sm dark:border-white/20"
-          >
-            Sign out
-          </button>
-        </form>
-      </header>
+    <>
+      <PageHeading
+        title={`Welcome back${session?.user?.name ? `, ${session.user.name.split(" ")[0]}` : ""}`}
+        description="A snapshot of your job hunt across Germany & Romania."
+      />
 
-      <CvUpload initialCv={cv ?? null} />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Jobs tracked"
+          value={data?.jobs.total ?? 0}
+          hint={`${data?.jobs.sponsorship ?? 0} with sponsorship signal`}
+          accent
+          icon="◆"
+        />
+        <StatCard
+          label="Ranked matches"
+          value={data?.matches.total ?? 0}
+          hint={`${data?.matches.strong ?? 0} strong (75+)`}
+          icon="◇"
+        />
+        <StatCard
+          label="Top fit score"
+          value={data?.matches.topScore ?? 0}
+          hint="best match so far"
+          icon="▲"
+        />
+        <StatCard
+          label="Applications"
+          value={data?.applications.total ?? 0}
+          hint={`${data?.applications.byStatus.interview ?? 0} in interview`}
+          icon="●"
+        />
+      </div>
 
-      <EnrichPanel initialGithub={github ?? null} initialWebsite={website ?? null} />
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        {/* Profile completeness */}
+        <GlassCard className="lg:col-span-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Profile completeness</h2>
+            <span className="text-2xl font-semibold text-[var(--accent)]">
+              {data?.profile.completeness ?? 0}%
+            </span>
+          </div>
+          <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[var(--accent-2)] to-[var(--accent)] transition-all"
+              style={{ width: `${data?.profile.completeness ?? 0}%` }}
+            />
+          </div>
+          <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+            {checklist.map((step) => (
+              <li key={step.label}>
+                <Link
+                  href={step.href}
+                  className="glass-soft glass-interactive flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm"
+                >
+                  <span
+                    className={[
+                      "grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs",
+                      step.done
+                        ? "bg-emerald-500 text-white"
+                        : "border border-current text-faint",
+                    ].join(" ")}
+                  >
+                    {step.done ? "✓" : ""}
+                  </span>
+                  <span className={step.done ? "text-muted line-through" : ""}>{step.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
 
-      <MatchesPanel />
-
-      <TrackerPanel />
-
-      <AnswerProfile />
-
-      <JobsPanel />
-
-      <section className="mt-6 rounded-2xl border border-dashed border-black/15 p-6 text-sm text-neutral-500 dark:border-white/15">
-        <p className="font-medium text-neutral-700 dark:text-neutral-300">
-          Coming next
-        </p>
-        <ul className="mt-2 list-inside list-disc space-y-1">
-          <li>Job alerts &amp; saved searches</li>
-          <li>Romania job source &amp; GDPR export/delete</li>
-        </ul>
-      </section>
-    </div>
+        {/* Pipeline snapshot */}
+        <GlassCard>
+          <h2 className="text-lg font-semibold">Pipeline</h2>
+          <ul className="mt-4 space-y-2.5">
+            {(["saved", "applied", "screening", "interview", "offer", "rejected"] as const).map(
+              (status) => (
+                <li key={status} className="flex items-center justify-between text-sm">
+                  <span className="capitalize text-muted">{status}</span>
+                  <span className="font-semibold">
+                    {data?.applications.byStatus[status] ?? 0}
+                  </span>
+                </li>
+              ),
+            )}
+          </ul>
+          <Link href="/applied" className="glass-btn mt-5 w-full">
+            Open tracker
+          </Link>
+        </GlassCard>
+      </div>
+    </>
   );
 }

@@ -15,13 +15,14 @@ export function AnswerProfile() {
   const [error, setError] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setBusy("loading");
-    const res = await fetch("/api/answers");
-    const data = await res.json();
-    setSchema(data.schema ?? []);
-    setFields(data.fields ?? {});
-    setBusy("idle");
+  const load = useCallback(() => {
+    return fetch("/api/answers")
+      .then((res) => res.json())
+      .then((data) => {
+        setSchema(data.schema ?? []);
+        setFields(data.fields ?? {});
+        setBusy("idle");
+      });
   }, []);
 
   useEffect(() => {
@@ -77,28 +78,20 @@ export function AnswerProfile() {
   const saving = busy === "saving";
 
   return (
-    <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-neutral-900">
+    <section className="glass mt-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Assisted apply</h2>
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted">
             Reusable answers for application forms. Draft from your profile, edit,
             then copy into each form — you review and submit.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={draft}
-            disabled={drafting}
-            className="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
-          >
+          <button onClick={draft} disabled={drafting} className="glass-btn glass-btn-primary">
             {drafting ? "Drafting…" : "Draft from my profile"}
           </button>
-          <button
-            onClick={save}
-            disabled={saving}
-            className="rounded-lg border border-black/15 px-3 py-1.5 text-sm font-medium disabled:opacity-50 dark:border-white/20"
-          >
+          <button onClick={save} disabled={saving} className="glass-btn">
             {saving ? "Saving…" : "Save"}
           </button>
         </div>
@@ -116,7 +109,7 @@ export function AnswerProfile() {
               <button
                 onClick={() => copy(field.key, fields[field.key] ?? "")}
                 disabled={!fields[field.key]}
-                className="text-xs text-neutral-500 hover:underline disabled:opacity-40"
+                className="text-xs text-muted hover:underline disabled:opacity-40"
               >
                 {copiedKey === field.key ? "Copied ✓" : "Copy"}
               </button>
@@ -129,7 +122,7 @@ export function AnswerProfile() {
               }
               rows={2}
               placeholder={field.hint}
-              className="mt-1 w-full rounded-lg border border-black/15 p-2 text-sm dark:border-white/20 dark:bg-neutral-800"
+              className="glass-input mt-1"
             />
           </div>
         ))}

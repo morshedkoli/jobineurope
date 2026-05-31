@@ -56,23 +56,19 @@ export function EnrichPanel({ initialGithub, initialWebsite }: EnrichPanelProps)
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-neutral-900">
+    <section className="glass mt-6 p-6">
       <h2 className="text-lg font-semibold">Enrich your profile</h2>
-      <p className="mt-1 text-sm text-neutral-500">
+      <p className="mt-1 text-sm text-muted">
         Pull in your GitHub activity and personal website so matching and cover
         letters reflect more than your CV.
       </p>
 
       <div className="mt-5 grid gap-5 sm:grid-cols-2">
         {/* GitHub */}
-        <div className="rounded-xl border border-black/5 p-4 dark:border-white/5">
+        <div className="glass-soft p-4">
           <div className="flex items-center justify-between gap-2">
             <h3 className="font-medium">GitHub</h3>
-            <button
-              onClick={syncGithub}
-              disabled={ghBusy}
-              className="rounded-lg border border-black/15 px-3 py-1.5 text-sm font-medium disabled:opacity-50 dark:border-white/20"
-            >
+            <button onClick={syncGithub} disabled={ghBusy} className="glass-btn">
               {ghBusy ? "Syncing…" : github ? "Re-sync" : "Connect"}
             </button>
           </div>
@@ -81,16 +77,13 @@ export function EnrichPanel({ initialGithub, initialWebsite }: EnrichPanelProps)
 
           {github ? (
             <div className="mt-3 space-y-3">
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-muted">
                 @{github.username} · {github.repos.length} top repos
               </p>
               {github.topLanguages.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {github.topLanguages.slice(0, 8).map((lang) => (
-                    <span
-                      key={lang}
-                      className="rounded-md bg-black/5 px-2 py-0.5 text-xs dark:bg-white/10"
-                    >
+                    <span key={lang} className="glass-chip">
                       {lang}
                     </span>
                   ))}
@@ -98,7 +91,7 @@ export function EnrichPanel({ initialGithub, initialWebsite }: EnrichPanelProps)
               )}
             </div>
           ) : (
-            <p className="mt-3 text-sm text-neutral-500">
+            <p className="mt-3 text-sm text-muted">
               If you signed in with GitHub, hit Connect to import your languages
               and top repositories.
             </p>
@@ -106,7 +99,7 @@ export function EnrichPanel({ initialGithub, initialWebsite }: EnrichPanelProps)
         </div>
 
         {/* Website */}
-        <div className="rounded-xl border border-black/5 p-4 dark:border-white/5">
+        <div className="glass-soft p-4">
           <h3 className="font-medium">Personal website</h3>
           <form onSubmit={saveWebsite} className="mt-3 flex gap-2">
             <input
@@ -115,13 +108,9 @@ export function EnrichPanel({ initialGithub, initialWebsite }: EnrichPanelProps)
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://you.dev"
               required
-              className="min-w-0 flex-1 rounded-lg border border-black/15 px-3 py-1.5 text-sm dark:border-white/20 dark:bg-neutral-800"
+              className="glass-input min-w-0 flex-1"
             />
-            <button
-              type="submit"
-              disabled={webBusy}
-              className="shrink-0 rounded-lg border border-black/15 px-3 py-1.5 text-sm font-medium disabled:opacity-50 dark:border-white/20"
-            >
+            <button type="submit" disabled={webBusy} className="glass-btn shrink-0">
               {webBusy ? "Reading…" : "Summarize"}
             </button>
           </form>
@@ -129,9 +118,7 @@ export function EnrichPanel({ initialGithub, initialWebsite }: EnrichPanelProps)
           {webError && <p className="mt-2 text-sm text-red-600">{webError}</p>}
 
           {website?.summary && (
-            <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300">
-              {website.summary}
-            </p>
+            <p className="mt-3 text-sm text-muted">{website.summary}</p>
           )}
         </div>
       </div>
